@@ -26,7 +26,7 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin, CommandExecuto
 
     @Override
     public String getPluginId() {
-        return VoicechatBroadcast.PLUGIN_ID;
+        return "voicechat_broadcast";
     }
 
     @Override
