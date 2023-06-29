@@ -8,12 +8,13 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-public class BroadcastVoicechatPlugin implements VoicechatPlugin, CommandExecutor {
+public class BroadcastVoicechatPlugin extends JavaPlugin implements VoicechatPlugin, CommandExecutor {
 
     public static Permission BROADCAST_PERMISSION = new Permission("voicechat_broadcast.broadcast", PermissionDefault.OP);
     public static Permission MUTE_PERMISSION = new Permission("voicechat_broadcast.mute", PermissionDefault.OP);
@@ -22,6 +23,11 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin, CommandExecuto
 
     public BroadcastVoicechatPlugin() {
         mutedPlayers = new HashSet<>();
+    }
+
+    @Override
+    public void onEnable() {
+        Bukkit.getPluginCommand("mutebroadcast").setExecutor(this);
     }
 
     @Override
