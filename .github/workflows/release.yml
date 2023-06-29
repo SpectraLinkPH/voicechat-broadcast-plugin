@@ -3,7 +3,7 @@ name: Build
 on:
   release:
     types:
-      - created
+      - master
 
 jobs:
   publish:
