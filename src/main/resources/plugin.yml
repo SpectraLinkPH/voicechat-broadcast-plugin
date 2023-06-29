@@ -6,6 +6,10 @@ prefix: voicechat_broadcast
 authors: [ "Max Henkel" ]
 description: A simple broadcast plugin for Simple Voice Chat
 website: https://modrepo.de
+commands:
+  mutebroadcast:
+    description: Mute or unmute the voice chat broadcast
+    usage: /mutebroadcast
 permissions:
   voicechat_broadcast.broadcast:
     description: Allows to broadcast your voice
