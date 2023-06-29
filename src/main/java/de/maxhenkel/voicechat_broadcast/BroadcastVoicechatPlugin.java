@@ -4,6 +4,9 @@ import de.maxhenkel.voicechat.api.*;
 import de.maxhenkel.voicechat.api.events.EventRegistration;
 import de.maxhenkel.voicechat.api.events.MicrophonePacketEvent;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
@@ -108,16 +111,13 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
     }
 
     /**
-     * Toggle mute status for a player
+     * Check if a player is muted
      *
-     * @param playerUUID the UUID of the player to toggle mute status
+     * @param playerUUID the UUID of the player to check
+     * @return true if the player is muted, false otherwise
      */
-    public void toggleMutePlayer(UUID playerUUID) {
-        if (mutedPlayers.contains(playerUUID)) {
-            unmutePlayer(playerUUID);
-        } else {
-            mutePlayer(playerUUID);
-        }
+    public boolean isPlayerMuted(UUID playerUUID) {
+        return mutedPlayers.contains(playerUUID);
     }
 
     /**
@@ -137,14 +137,38 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
     public void unmutePlayer(UUID playerUUID) {
         mutedPlayers.remove(playerUUID);
     }
-
+    
     /**
-     * Check if a player is muted
+     * Handle the command to mute/unmute the broadcast
      *
-     * @param playerUUID the UUID of the player to check
-     * @return true if the player is muted, false otherwise
+     * @param sender the command sender
+     * @param command the command object
+     * @param label the command label
+     * @param args the command arguments
+     * @return true if the command was handled, false otherwise
      */
-    public boolean isPlayerMuted(UUID playerUUID) {
-        return mutedPlayers.contains(playerUUID);
+    public boolean handleCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage(ChatColor.RED + "Only players can use this command.");
+            return true;
+        }
+
+        Player player = (Player) sender;
+
+        if (!player.hasPermission(BROADCAST_PERMISSION)) {
+            player.sendMessage(ChatColor.RED + "You don't have permission to use this command.");
+            return true;
+        }
+
+        if (isPlayerMuted(player.getUniqueId())) {
+            unmutePlayer(player.getUniqueId());
+            player.sendMessage(ChatColor.GREEN + "Broadcast unmuted.");
+        } else {
+            mutePlayer(player.getUniqueId());
+            player.sendMessage(ChatColor.GREEN + "Broadcast muted.");
+        }
+
+        return true;
     }
+
 }
