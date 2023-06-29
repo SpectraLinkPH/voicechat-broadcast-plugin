@@ -1,10 +1,9 @@
-package de.maxhenkel.voicechat_broadcast;
-
 import de.maxhenkel.voicechat.api.*;
 import de.maxhenkel.voicechat.api.events.EventRegistration;
 import de.maxhenkel.voicechat.api.events.MicrophonePacketEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
@@ -14,10 +13,10 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-public class BroadcastVoicechatPlugin implements VoicechatPlugin {
+public class BroadcastVoicechatPlugin implements VoicechatPlugin, CommandExecutor {
 
     public static Permission BROADCAST_PERMISSION = new Permission("voicechat_broadcast.broadcast", PermissionDefault.OP);
-    public static Permission MUTE_PERMISSION = new Permission("voicechat_broadcast.mute", PermissionDefault.TRUE);
+    public static Permission MUTE_PERMISSION = new Permission("voicechat_broadcast.mute", PermissionDefault.OP);
 
     private Set<UUID> mutedPlayers;
 
@@ -37,6 +36,46 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
     @Override
     public void registerEvents(EventRegistration registration) {
         registration.registerEvent(MicrophonePacketEvent.class, this::onMicrophone);
+    }
+
+    private void onMicrophone(MicrophonePacketEvent event) {
+        if (event.getSenderConnection() == null) {
+            return;
+        }
+        if (!(event.getSenderConnection().getPlayer().getPlayer() instanceof Player player)) {
+            return;
+        }
+
+        if (!player.hasPermission(BROADCAST_PERMISSION)) {
+            return;
+        }
+
+        Group group = event.getSenderConnection().getGroup();
+        if (group == null) {
+            return;
+        }
+
+        if (!group.getName().strip().equalsIgnoreCase("broadcast")) {
+            return;
+        }
+
+        event.cancel();
+
+        VoicechatServerApi api = event.getVoicechat();
+
+        for (Player onlinePlayer : Bukkit.getServer().getOnlinePlayers()) {
+            if (onlinePlayer.getUniqueId().equals(player.getUniqueId())) {
+                continue;
+            }
+            if (mutedPlayers.contains(onlinePlayer.getUniqueId())) {
+                continue;
+            }
+            VoicechatConnection connection = api.getConnectionOf(onlinePlayer.getUniqueId());
+            if (connection == null) {
+                continue;
+            }
+            api.sendStaticSoundPacketTo(connection, event.getPacket().toStaticSoundPacket());
+        }
     }
 
     @Override
@@ -62,48 +101,5 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
         }
 
         return true;
-    }
-
-    private void onMicrophone(MicrophonePacketEvent event) {
-        if (event.getSenderConnection() == null) {
-            return;
-        }
-
-        if (!(event.getSenderConnection().getPlayer().getPlayer() instanceof Player player)) {
-            return;
-        }
-
-        if (!player.hasPermission(BROADCAST_PERMISSION)) {
-            return;
-        }
-
-        if (mutedPlayers.contains(player.getUniqueId())) {
-            return;
-        }
-
-        Group group = event.getSenderConnection().getGroup();
-
-        if (group == null) {
-            return;
-        }
-
-        if (!group.getName().strip().equalsIgnoreCase("broadcast")) {
-            return;
-        }
-
-        event.cancel();
-
-        VoicechatServerApi api = event.getVoicechat();
-
-        for (Player onlinePlayer : Bukkit.getServer().getOnlinePlayers()) {
-            if (onlinePlayer.getUniqueId().equals(player.getUniqueId())) {
-                continue;
-            }
-            VoicechatConnection connection = api.getConnectionOf(onlinePlayer.getUniqueId());
-            if (connection == null) {
-                continue;
-            }
-            api.sendStaticSoundPacketTo(connection, event.getPacket().toStaticSoundPacket());
-        }
     }
 }
