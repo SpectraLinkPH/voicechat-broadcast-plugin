@@ -8,12 +8,22 @@ import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
 public class BroadcastVoicechatPlugin implements VoicechatPlugin {
 
     /**
      * Only OPs have the broadcast permission by default
      */
     public static Permission BROADCAST_PERMISSION = new Permission("voicechat_broadcast.broadcast", PermissionDefault.OP);
+
+    private Set<UUID> mutedPlayers;
+
+    public BroadcastVoicechatPlugin() {
+        this.mutedPlayers = new HashSet<>();
+    }
 
     /**
      * @return the unique ID for this voice chat plugin
@@ -83,8 +93,8 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
 
         // Iterating over every player on the server
         for (Player onlinePlayer : Bukkit.getServer().getOnlinePlayers()) {
-            // Don't send the audio to the player that is broadcasting
-            if (onlinePlayer.getUniqueId().equals(player.getUniqueId())) {
+            // Don't send the audio to the player that is broadcasting or to muted players
+            if (onlinePlayer.getUniqueId().equals(player.getUniqueId()) || isPlayerMuted(onlinePlayer.getUniqueId())) {
                 continue;
             }
             VoicechatConnection connection = api.getConnectionOf(onlinePlayer.getUniqueId());
@@ -97,4 +107,44 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
         }
     }
 
+    /**
+     * Toggle mute status for a player
+     *
+     * @param playerUUID the UUID of the player to toggle mute status
+     */
+    public void toggleMutePlayer(UUID playerUUID) {
+        if (mutedPlayers.contains(playerUUID)) {
+            unmutePlayer(playerUUID);
+        } else {
+            mutePlayer(playerUUID);
+        }
+    }
+
+    /**
+     * Mute a player
+     *
+     * @param playerUUID the UUID of the player to mute
+     */
+    public void mutePlayer(UUID playerUUID) {
+        mutedPlayers.add(playerUUID);
+    }
+
+    /**
+     * Unmute a player
+     *
+     * @param playerUUID the UUID of the player to unmute
+     */
+    public void unmutePlayer(UUID playerUUID) {
+        mutedPlayers.remove(playerUUID);
+    }
+
+    /**
+     * Check if a player is muted
+     *
+     * @param playerUUID the UUID of the player to check
+     * @return true if the player is muted, false otherwise
+     */
+    public boolean isPlayerMuted(UUID playerUUID) {
+        return mutedPlayers.contains(playerUUID);
+    }
 }
