@@ -2,32 +2,24 @@ import de.maxhenkel.voicechat.api.*;
 import de.maxhenkel.voicechat.api.events.EventRegistration;
 import de.maxhenkel.voicechat.api.events.MicrophonePacketEvent;
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.Plugin;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-
-public class BroadcastVoicechatPlugin extends JavaPlugin implements VoicechatPlugin, CommandExecutor {
+public class BroadcastVoicechatPlugin implements VoicechatPlugin {
 
     public static Permission BROADCAST_PERMISSION = new Permission("voicechat_broadcast.broadcast", PermissionDefault.OP);
     public static Permission MUTE_PERMISSION = new Permission("voicechat_broadcast.mute", PermissionDefault.OP);
 
-    private Set<UUID> mutedPlayers;
+    private Inventory muteInventory;
 
     public BroadcastVoicechatPlugin() {
-        mutedPlayers = new HashSet<>();
-    }
-
-    @Override
-    public void onEnable() {
-        Bukkit.getPluginCommand("mutebroadcast").setExecutor(this);
+        muteInventory = Bukkit.createInventory(null, 9, "Mute Broadcast");
+        initializeMuteInventory();
     }
 
     @Override
@@ -44,10 +36,55 @@ public class BroadcastVoicechatPlugin extends JavaPlugin implements VoicechatPlu
         registration.registerEvent(MicrophonePacketEvent.class, this::onMicrophone);
     }
 
+    private void initializeMuteInventory() {
+        ItemStack muteAllItem = createItem(Material.REDSTONE_BLOCK, "Mute All");
+        ItemStack unmuteAllItem = createItem(Material.EMERALD_BLOCK, "Unmute All");
+
+        muteInventory.setItem(0, muteAllItem);
+        muteInventory.setItem(1, unmuteAllItem);
+    }
+
+    private ItemStack createItem(Material material, String displayName) {
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(displayName);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private void openMuteInventory(Player player) {
+        player.openInventory(muteInventory);
+    }
+
+    private void muteAllPlayers() {
+        for (Player onlinePlayer : Bukkit.getServer().getOnlinePlayers()) {
+            if (onlinePlayer != null && !onlinePlayer.hasPermission(BROADCAST_PERMISSION) && !onlinePlayer.hasPermission(MUTE_PERMISSION)) {
+                mutedPlayers.add(onlinePlayer.getUniqueId());
+            }
+        }
+    }
+
+    private void unmuteAllPlayers() {
+        mutedPlayers.clear();
+    }
+
+    private void togglePlayerMute(Player player) {
+        if (mutedPlayers.contains(player.getUniqueId())) {
+            mutedPlayers.remove(player.getUniqueId());
+        } else {
+            mutedPlayers.add(player.getUniqueId());
+        }
+    }
+
+    private boolean isPlayerMuted(Player player) {
+        return mutedPlayers.contains(player.getUniqueId());
+    }
+
     private void onMicrophone(MicrophonePacketEvent event) {
         if (event.getSenderConnection() == null) {
             return;
         }
+
         if (!(event.getSenderConnection().getPlayer().getPlayer() instanceof Player player)) {
             return;
         }
@@ -57,11 +94,16 @@ public class BroadcastVoicechatPlugin extends JavaPlugin implements VoicechatPlu
         }
 
         Group group = event.getSenderConnection().getGroup();
+
         if (group == null) {
             return;
         }
 
         if (!group.getName().strip().equalsIgnoreCase("broadcast")) {
+            return;
+        }
+
+        if (isPlayerMuted(player)) {
             return;
         }
 
@@ -73,39 +115,11 @@ public class BroadcastVoicechatPlugin extends JavaPlugin implements VoicechatPlu
             if (onlinePlayer.getUniqueId().equals(player.getUniqueId())) {
                 continue;
             }
-            if (mutedPlayers.contains(onlinePlayer.getUniqueId())) {
-                continue;
-            }
             VoicechatConnection connection = api.getConnectionOf(onlinePlayer.getUniqueId());
             if (connection == null) {
                 continue;
             }
             api.sendStaticSoundPacketTo(connection, event.getPacket().toStaticSoundPacket());
         }
-    }
-
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage("Only players can use this command.");
-            return true;
-        }
-
-        Player player = (Player) sender;
-
-        if (!player.hasPermission(MUTE_PERMISSION)) {
-            sender.sendMessage("You do not have permission to use this command.");
-            return true;
-        }
-
-        if (mutedPlayers.contains(player.getUniqueId())) {
-            mutedPlayers.remove(player.getUniqueId());
-            sender.sendMessage("You have unmuted the broadcast.");
-        } else {
-            mutedPlayers.add(player.getUniqueId());
-            sender.sendMessage("You have muted the broadcast.");
-        }
-
-        return true;
     }
 }
