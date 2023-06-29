@@ -1,125 +1,100 @@
+package de.maxhenkel.voicechat_broadcast;
+
 import de.maxhenkel.voicechat.api.*;
 import de.maxhenkel.voicechat.api.events.EventRegistration;
 import de.maxhenkel.voicechat.api.events.MicrophonePacketEvent;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
-import org.bukkit.plugin.Plugin;
 
 public class BroadcastVoicechatPlugin implements VoicechatPlugin {
 
+    /**
+     * Only OPs have the broadcast permission by default
+     */
     public static Permission BROADCAST_PERMISSION = new Permission("voicechat_broadcast.broadcast", PermissionDefault.OP);
-    public static Permission MUTE_PERMISSION = new Permission("voicechat_broadcast.mute", PermissionDefault.OP);
 
-    private Inventory muteInventory;
-
-    public BroadcastVoicechatPlugin() {
-        muteInventory = Bukkit.createInventory(null, 9, "Mute Broadcast");
-        initializeMuteInventory();
-    }
-
+    /**
+     * @return the unique ID for this voice chat plugin
+     */
     @Override
     public String getPluginId() {
-        return "voicechat_broadcast";
+        return VoicechatBroadcast.PLUGIN_ID;
     }
 
+    /**
+     * Called when the voice chat initializes the plugin.
+     *
+     * @param api the voice chat API
+     */
     @Override
     public void initialize(VoicechatApi api) {
+
     }
 
+    /**
+     * Called once by the voice chat to register all events.
+     *
+     * @param registration the event registration
+     */
     @Override
     public void registerEvents(EventRegistration registration) {
         registration.registerEvent(MicrophonePacketEvent.class, this::onMicrophone);
     }
 
-    private void initializeMuteInventory() {
-        ItemStack muteAllItem = createItem(Material.REDSTONE_BLOCK, "Mute All");
-        ItemStack unmuteAllItem = createItem(Material.EMERALD_BLOCK, "Unmute All");
-
-        muteInventory.setItem(0, muteAllItem);
-        muteInventory.setItem(1, unmuteAllItem);
-    }
-
-    private ItemStack createItem(Material material, String displayName) {
-        ItemStack item = new ItemStack(material);
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(displayName);
-        item.setItemMeta(meta);
-        return item;
-    }
-
-    private void openMuteInventory(Player player) {
-        player.openInventory(muteInventory);
-    }
-
-    private void muteAllPlayers() {
-        for (Player onlinePlayer : Bukkit.getServer().getOnlinePlayers()) {
-            if (onlinePlayer != null && !onlinePlayer.hasPermission(BROADCAST_PERMISSION) && !onlinePlayer.hasPermission(MUTE_PERMISSION)) {
-                mutedPlayers.add(onlinePlayer.getUniqueId());
-            }
-        }
-    }
-
-    private void unmuteAllPlayers() {
-        mutedPlayers.clear();
-    }
-
-    private void togglePlayerMute(Player player) {
-        if (mutedPlayers.contains(player.getUniqueId())) {
-            mutedPlayers.remove(player.getUniqueId());
-        } else {
-            mutedPlayers.add(player.getUniqueId());
-        }
-    }
-
-    private boolean isPlayerMuted(Player player) {
-        return mutedPlayers.contains(player.getUniqueId());
-    }
-
+    /**
+     * This method is called whenever a player sends audio to the server via the voice chat.
+     *
+     * @param event the microphone packet event
+     */
     private void onMicrophone(MicrophonePacketEvent event) {
+        // The connection might be null if the event is caused by other means
         if (event.getSenderConnection() == null) {
             return;
         }
-
+        // Cast the generic player object of the voice chat API to an actual bukkit player
+        // This object should always be a bukkit player object on bukkit based servers
         if (!(event.getSenderConnection().getPlayer().getPlayer() instanceof Player player)) {
             return;
         }
 
+        // Check if the player has the broadcast permission
         if (!player.hasPermission(BROADCAST_PERMISSION)) {
             return;
         }
 
         Group group = event.getSenderConnection().getGroup();
 
+        // Check if the player sending the audio is actually in a group
         if (group == null) {
             return;
         }
 
+        // Only broadcast the voice when the group name is "broadcast"
         if (!group.getName().strip().equalsIgnoreCase("broadcast")) {
             return;
         }
 
-        if (isPlayerMuted(player)) {
-            return;
-        }
-
+        // Cancel the actual microphone packet event that people in that group or close by don't hear the broadcaster twice
         event.cancel();
 
         VoicechatServerApi api = event.getVoicechat();
 
+        // Iterating over every player on the server
         for (Player onlinePlayer : Bukkit.getServer().getOnlinePlayers()) {
+            // Don't send the audio to the player that is broadcasting
             if (onlinePlayer.getUniqueId().equals(player.getUniqueId())) {
                 continue;
             }
             VoicechatConnection connection = api.getConnectionOf(onlinePlayer.getUniqueId());
+            // Check if the player is actually connected to the voice chat
             if (connection == null) {
                 continue;
             }
+            // Send a static audio packet of the microphone data to the connection of each player
             api.sendStaticSoundPacketTo(connection, event.getPacket().toStaticSoundPacket());
         }
     }
+
 }
