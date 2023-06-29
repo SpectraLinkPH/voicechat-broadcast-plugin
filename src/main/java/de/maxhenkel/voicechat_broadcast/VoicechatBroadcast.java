@@ -28,15 +28,6 @@ public final class VoicechatBroadcast extends JavaPlugin {
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (voicechatPlugin != null) {
-            return voicechatPlugin.handleCommand(sender, command, label, args);
-        }
-        return false;
-    }
-
-
-    @Override
     public void onDisable() {
         if (voicechatPlugin != null) {
             getServer().getServicesManager().unregister(voicechatPlugin);
