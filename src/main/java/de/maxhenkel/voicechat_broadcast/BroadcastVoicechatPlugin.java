@@ -1,9 +1,10 @@
-package de.maxhenkel.voicechat_broadcast;
-
 import de.maxhenkel.voicechat.api.*;
 import de.maxhenkel.voicechat.api.events.EventRegistration;
 import de.maxhenkel.voicechat.api.events.MicrophonePacketEvent;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
@@ -14,13 +15,16 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
      * Only OPs have the broadcast permission by default
      */
     public static Permission BROADCAST_PERMISSION = new Permission("voicechat_broadcast.broadcast", PermissionDefault.OP);
+    public static Permission VOLUME_PERMISSION = new Permission("voicechat_broadcast.volume", PermissionDefault.OP);
+
+    private double broadcastVolume = 1.0;
 
     /**
      * @return the unique ID for this voice chat plugin
      */
     @Override
     public String getPluginId() {
-        return VoicechatBroadcast.PLUGIN_ID;
+        return "voicechat_broadcast";
     }
 
     /**
@@ -92,9 +96,61 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
             if (connection == null) {
                 continue;
             }
-            // Send a static audio packet of the microphone data to the connection of each player
-            api.sendStaticSoundPacketTo(connection, event.getPacket().toStaticSoundPacket());
+            // Apply volume adjustment to the microphone packet
+            StaticSoundPacket packet = event.getPacket().toStaticSoundPacket();
+            packet.setVolume(packet.getVolume() * broadcastVolume);
+            // Send the adjusted audio packet to the connection of each player
+            api.sendStaticSoundPacketTo(connection, packet);
         }
     }
 
+    /**
+     * Handles the command for adjusting the broadcast volume
+     *
+     * @param sender  the command sender
+     * @param command the command
+     * @param label   the command label
+     * @param args    the command arguments
+     * @return true if the command was handled successfully, false otherwise
+     */
+    public boolean handleVolumeCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage(ChatColor.RED + "This command can only be executed by players.");
+            return true;
+        }
+
+        Player player = (Player) sender;
+
+        if (!player.hasPermission(VOLUME_PERMISSION)) {
+            player.sendMessage(ChatColor.RED + "You don't have permission to use this command.");
+            return true;
+        }
+
+        if (args.length != 1) {
+            return false;
+        }
+
+        try {
+            double volume = Double.parseDouble(args[0]);
+
+            if (volume < 0.0 || volume > 1.0) {
+                player.sendMessage(ChatColor.RED + "Volume must be a value between 0.0 and 1.0.");
+                return true;
+            }
+
+            broadcastVolume = volume;
+            player.sendMessage(ChatColor.GREEN + "Broadcast volume set to " + volume);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (command.getName().equalsIgnoreCase("broadcastvolume")) {
+            return handleVolumeCommand(sender, command, label, args);
+        }
+        return false;
+    }
 }
