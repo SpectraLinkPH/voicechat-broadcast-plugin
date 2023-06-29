@@ -1,3 +1,5 @@
+package de.maxhenkel.voicechat_broadcast;
+
 import de.maxhenkel.voicechat.api.*;
 import de.maxhenkel.voicechat.api.events.EventRegistration;
 import de.maxhenkel.voicechat.api.events.MicrophonePacketEvent;
@@ -24,7 +26,7 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
      */
     @Override
     public String getPluginId() {
-        return "voicechat_broadcast";
+        return "voicechat_broadcast.PLUGIN_ID";
     }
 
     /**
