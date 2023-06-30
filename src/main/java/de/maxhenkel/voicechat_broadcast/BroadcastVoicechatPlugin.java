@@ -74,7 +74,7 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
         }
 
         // Only allow broadcasting if the group name is "broadcast" and the password matches
-        if (!group.getName().strip().equalsIgnoreCase("broadcast") || !group.getPassword().equals(GROUP_PASSWORD)) {
+        if (!group.getName().strip().equalsIgnoreCase("broadcast") || !getGroupPassword(group).equals(GROUP_PASSWORD)) {
             return;
         }
 
@@ -99,4 +99,9 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
         }
     }
 
+    private String getGroupPassword(Group group) {
+        // Implement the logic to retrieve the password of the group
+        // Replace the return statement with your own code
+        return "group_password";
+    }
 }
