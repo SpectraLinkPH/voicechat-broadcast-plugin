@@ -1,7 +1,7 @@
 package de.maxhenkel.voicechat_broadcast;
 
 import de.maxhenkel.voicechat.api.Group;
-import de.maxhenkel.voicechat.api.GroupType;
+import de.maxhenkel.voicechat.api.Group.Builder;
 import de.maxhenkel.voicechat.api.VoicechatApi;
 import de.maxhenkel.voicechat.api.VoicechatServerApi;
 import org.bukkit.command.Command;
