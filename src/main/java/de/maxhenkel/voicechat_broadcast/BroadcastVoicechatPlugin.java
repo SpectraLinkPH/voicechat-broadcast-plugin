@@ -4,7 +4,6 @@ import de.maxhenkel.voicechat.api.*;
 import de.maxhenkel.voicechat.api.events.EventRegistration;
 import de.maxhenkel.voicechat.api.events.MicrophonePacketEvent;
 import org.bukkit.Bukkit;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
@@ -54,8 +53,8 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
         if (event.getSenderConnection() == null) {
             return;
         }
-
-        // Cast the generic player object of the voice chat API to an actual Bukkit player
+        // Cast the generic player object of the voice chat API to an actual bukkit player
+        // This object should always be a bukkit player object on bukkit based servers
         if (!(event.getSenderConnection().getPlayer().getPlayer() instanceof Player player)) {
             return;
         }
@@ -80,27 +79,62 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
         // Cancel the actual microphone packet event that people in that group or close by don't hear the broadcaster twice
         event.cancel();
 
-        // Adjust the volume of the broadcast
-        float volume = 1.0f; // Adjust the volume level as desired (between 0.0f and 1.0f)
-        Sound sound = event.getPacket().toSound();
-        Location location = player.getLocation();
-        
-        // Play the broadcast sound at the player's location with the adjusted volume
-        player.playSound(location, sound, SoundCategory.VOICE, volume, 1.0f);
+        VoicechatServerApi api = event.getVoicechat();
 
-        // Iterate over every player on the server
+        // Iterating over every player on the server
         for (Player onlinePlayer : Bukkit.getServer().getOnlinePlayers()) {
             // Don't send the audio to the player that is broadcasting
             if (onlinePlayer.getUniqueId().equals(player.getUniqueId())) {
                 continue;
             }
-            
-            // Adjust the volume level for each player as desired
-            float playerVolume = 1.0f; // Adjust the volume level as desired (between 0.0f and 1.0f)
-            
-            // Play the broadcast sound at the online player's location with the adjusted volume
-            onlinePlayer.playSound(location, sound, SoundCategory.VOICE, playerVolume, 1.0f);
+            VoicechatConnection connection = api.getConnectionOf(onlinePlayer.getUniqueId());
+            // Check if the player is actually connected to the voice chat
+            if (connection == null) {
+                continue;
+            }
+            // Send a static audio packet of the microphone data to the connection of each player
+            api.sendStaticSoundPacketTo(connection, event.getPacket().toStaticSoundPacket());
         }
     }
 
+}
+ 37 changes: 37 additions & 0 deletions37  
+src/main/java/de/maxhenkel/voicechat_broadcast/VoicechatBroadcast.java
+@@ -0,0 +1,37 @@
+package de.maxhenkel.voicechat_broadcast;
+
+import de.maxhenkel.voicechat.api.BukkitVoicechatService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import javax.annotation.Nullable;
+
+public final class VoicechatBroadcast extends JavaPlugin {
+
+    public static final String PLUGIN_ID = "voicechat_broadcast";
+    public static final Logger LOGGER = LogManager.getLogger(PLUGIN_ID);
+
+    @Nullable
+    private BroadcastVoicechatPlugin voicechatPlugin;
+
+    @Override
+    public void onEnable() {
+        BukkitVoicechatService service = getServer().getServicesManager().load(BukkitVoicechatService.class);
+        if (service != null) {
+            voicechatPlugin = new BroadcastVoicechatPlugin();
+            service.registerPlugin(voicechatPlugin);
+            LOGGER.info("Successfully registered voice chat broadcast plugin");
+        } else {
+            LOGGER.info("Failed to register voice chat broadcast plugin");
+        }
+    }
+
+    @Override
+    public void onDisable() {
+        if (voicechatPlugin != null) {
+            getServer().getServicesManager().unregister(voicechatPlugin);
+            LOGGER.info("Successfully unregistered voice chat broadcast plugin");
+        }
+    }
 }
