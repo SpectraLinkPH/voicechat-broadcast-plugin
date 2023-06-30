@@ -15,6 +15,7 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
      */
     public static Permission BROADCAST_PERMISSION = new Permission("voicechat_broadcast.broadcast", PermissionDefault.OP);
 
+
     /**
      * @return the unique ID for this voice chat plugin
      */
@@ -22,6 +23,8 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
     public String getPluginId() {
         return VoicechatBroadcast.PLUGIN_ID;
     }
+
+
 
     /**
      * Called when the voice chat initializes the plugin.

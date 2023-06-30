@@ -4,6 +4,7 @@ import de.maxhenkel.voicechat.api.Group;
 import de.maxhenkel.voicechat.api.VoicechatApi;
 import de.maxhenkel.voicechat.api.VoicechatConnection;
 import de.maxhenkel.voicechat.api.VoicechatServerApi;
+import de.maxhenkel.voicechat_broadcast.BroadcastVoicechatPlugin;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -11,11 +12,11 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 
-public class InstantGroupCommand implements CommandExecutor {
+public class InstantGroupCommands implements CommandExecutor {
 
     private final BroadcastVoicechatPlugin plugin;
 
-    public InstantGroupCommand(BroadcastVoicechatPlugin plugin) {
+    public InstantGroupCommands(BroadcastVoicechatPlugin plugin) {
         this.plugin = plugin;
     }
 
