@@ -1,4 +1,4 @@
-package de.maxhenkel.voicechat_broadcast;
+package de.maxhenkel.voicechat_broadcast.command;
 
 import de.maxhenkel.voicechat.api.Group;
 import de.maxhenkel.voicechat.api.VoicechatApi;
@@ -36,7 +36,7 @@ public class InstantGroupCommand implements CommandExecutor {
             return true;
         }
 
-        VoicechatConnection playerConnection = voicechatServerApi.getVoicechatConnection(player.getUniqueId());
+        VoicechatConnection playerConnection = voicechatServerApi.getConnection(player.getUniqueId());
 
         if (playerConnection == null) {
             player.sendMessage("Voice chat not connected");
@@ -49,15 +49,15 @@ public class InstantGroupCommand implements CommandExecutor {
             group = playerConnection.getGroup();
         } else {
             group = voicechatServerApi.groupBuilder()
-                    .setName(EnhancedGroups.CONFIG.instantGroupName)
+                    .setName("broadcast")
                     .setType(Group.Type.OPEN)
                     .build();
         }
 
         List<Player> nearbyPlayers = player.getWorld().getPlayers();
-        
+
         for (Player nearbyPlayer : nearbyPlayers) {
-            VoicechatConnection connection = voicechatServerApi.getVoicechatConnection(nearbyPlayer.getUniqueId());
+            VoicechatConnection connection = voicechatServerApi.getConnection(nearbyPlayer.getUniqueId());
             if (connection != null && !connection.isInGroup()) {
                 connection.setGroup(group);
             }

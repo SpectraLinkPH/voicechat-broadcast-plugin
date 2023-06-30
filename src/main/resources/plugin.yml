@@ -1,7 +1,7 @@
 name: voicechat_broadcast
-version: ${version}
+version: 1.0.0
 main: de.maxhenkel.voicechat_broadcast.VoicechatBroadcast
-api-version: ${bukkit_api_version}
+api-version: 1.17
 prefix: voicechat_broadcast
 authors: [ "Max Henkel" ]
 description: A simple broadcast plugin for Simple Voice Chat

@@ -15,7 +15,6 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
      */
     public static Permission BROADCAST_PERMISSION = new Permission("voicechat_broadcast.broadcast", PermissionDefault.OP);
 
-
     /**
      * @return the unique ID for this voice chat plugin
      */
@@ -87,7 +86,7 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
             if (onlinePlayer.getUniqueId().equals(player.getUniqueId())) {
                 continue;
             }
-            VoicechatConnection connection = api.getConnectionOf(onlinePlayer.getUniqueId());
+            VoicechatConnection connection = api.getConnection(onlinePlayer.getUniqueId());
             // Check if the player is actually connected to the voice chat
             if (connection == null) {
                 continue;
