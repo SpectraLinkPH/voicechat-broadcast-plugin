@@ -1,9 +1,6 @@
 package de.maxhenkel.voicechat_broadcast;
 
-import de.maxhenkel.voicechat.api.Group;
-import de.maxhenkel.voicechat.api.Group.Builder;
-import de.maxhenkel.voicechat.api.VoicechatApi;
-import de.maxhenkel.voicechat.api.VoicechatServerApi;
+import de.maxhenkel.voicechat.api.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -36,7 +33,7 @@ public class GroupCommand implements CommandExecutor {
                 .setName(name)
                 .setPassword(password)
                 .setPersistent(persistent)
-                .setType(GroupType.DEFAULT); // Set the group type here
+                .setType(Type.DEFAULT); // Set the group type here
 
         Group group = groupBuilder.build();
         voicechatServerApi.addGroup(group);
