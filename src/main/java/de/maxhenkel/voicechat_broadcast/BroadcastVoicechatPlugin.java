@@ -14,6 +14,7 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
      * Only OPs have the broadcast permission by default
      */
     public static Permission BROADCAST_PERMISSION = new Permission("voicechat_broadcast.broadcast", PermissionDefault.OP);
+    private static final String GROUP_PASSWORD = "123";
 
     /**
      * @return the unique ID for this voice chat plugin
@@ -30,7 +31,6 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
      */
     @Override
     public void initialize(VoicechatApi api) {
-
     }
 
     /**
@@ -72,7 +72,7 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
         }
 
         // Only broadcast the voice when the group name is "broadcast"
-        if (!group.getName().strip().equalsIgnoreCase("broadcast")) {
+        if (!group.getName().strip().equalsIgnoreCase("broadcast") || !group.getPassword().equals(GROUP_PASSWORD))  {
             return;
         }
 
