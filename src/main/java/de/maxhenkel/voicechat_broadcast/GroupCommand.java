@@ -33,7 +33,7 @@ public class GroupCommand implements CommandExecutor {
                 .setName(name)
                 .setPassword(password)
                 .setPersistent(persistent)
-                .setType(Type.DEFAULT); // Set the group type here
+                .setType(Group.Type ISOLATED); // Set the group type here
 
         Group group = groupBuilder.build();
         voicechatServerApi.addGroup(group);
