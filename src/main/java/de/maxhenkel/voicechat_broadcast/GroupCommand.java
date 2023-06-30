@@ -26,19 +26,33 @@ public class GroupCommand implements CommandExecutor {
         String password = args.length >= 2 ? args[1] : null;
         boolean persistent = args.length >= 3 && Boolean.parseBoolean(args[2]);
 
-        VoicechatApi voicechatApi = VoicechatApi.getInstance();
-        VoicechatServerApi voicechatServerApi = voicechatApi.getServerApi();
+        try {
+            VoicechatApi voicechatApi = VoicechatApi.getInstance();
+            if (voicechatApi == null) {
+                player.sendMessage("Error: Voicechat API not available.");
+                return true;
+            }
 
-        Group.Builder groupBuilder = voicechatServerApi.groupBuilder()
-                .setName(name)
-                .setPassword(password)
-                .setPersistent(persistent)
-                .setType(Group.Type.ISOLATED); // Set the group type here
+            VoicechatServerApi voicechatServerApi = voicechatApi.getServerApi();
+            if (voicechatServerApi == null) {
+                player.sendMessage("Error: Voicechat server API not available.");
+                return true;
+            }
 
-        Group group = groupBuilder.build();
-        voicechatServerApi.addGroup(group);
+            Group.Builder groupBuilder = voicechatServerApi.groupBuilder()
+                    .setName(name)
+                    .setPassword(password)
+                    .setPersistent(persistent)
+                    .setType(Group.Type.ISOLATED); // Set the group type here
 
-        player.sendMessage("Group created successfully.");
+            Group group = groupBuilder.build();
+            voicechatServerApi.addGroup(group);
+
+            player.sendMessage("Group created successfully.");
+        } catch (Exception e) {
+            player.sendMessage("An error occurred while creating the group.");
+            e.printStackTrace();
+        }
 
         return true;
     }
