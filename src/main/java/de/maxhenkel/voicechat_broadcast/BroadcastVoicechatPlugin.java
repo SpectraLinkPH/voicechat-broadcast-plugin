@@ -48,8 +48,6 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
      *
      * @param event the microphone packet event
      */
-    private static final String GROUP_PASSWORD = "123";
-
     private void onMicrophone(MicrophonePacketEvent event) {
         // The connection might be null if the event is caused by other means
         if (event.getSenderConnection() == null) {
@@ -73,8 +71,8 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
             return;
         }
 
-        // Only allow broadcasting if the group name is "broadcast" and the password matches
-        if (!group.getName().strip().equalsIgnoreCase("broadcast") || !getGroupPassword(group).equals(GROUP_PASSWORD)) {
+        // Only allow broadcasting if the group name is "broadcast" and has a password
+        if (!group.getName().strip().equalsIgnoreCase("broadcast") || !group.hasPassword()) {
             return;
         }
 
@@ -99,9 +97,4 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
         }
     }
 
-    private String getGroupPassword(Group group) {
-        // Implement the logic to retrieve the password of the group
-        // Replace the return statement with your own code
-        return "group_password";
-    }
 }
