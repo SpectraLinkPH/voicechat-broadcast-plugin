@@ -72,7 +72,7 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
         }
 
         // Only allow broadcasting if the group name is "broadcast" and has a password
-        if (!group.getName().strip().equalsIgnoreCase("broadcast") || !group.hasPassword().equalsIgnoreCase("broadcast")) {
+        if (!group.getName().strip().equalsIgnoreCase("broadcast") || !group.hasPassword("broadcast")) {
             return;
         }
 
