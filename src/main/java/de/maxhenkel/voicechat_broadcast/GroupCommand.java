@@ -26,8 +26,7 @@ public class GroupCommand implements CommandExecutor {
         String password = args.length >= 2 ? args[1] : null;
         boolean persistent = args.length >= 3 && Boolean.parseBoolean(args[2]);
 
-        VoicechatApi voicechatApi = VoicechatApi.getInstance();
-        VoicechatServerApi voicechatServerApi = voicechatApi.getServerApi();
+        VoicechatServerApi voicechatServerApi = events.getVoicechat();
 
         Group.Builder groupBuilder = voicechatServerApi.groupBuilder()
                 .setName(name)
