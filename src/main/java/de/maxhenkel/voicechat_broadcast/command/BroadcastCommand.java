@@ -52,28 +52,25 @@ public class BroadcastCommand implements CommandExecutor, TabCompleter {
         }
     }
 
+
     private boolean handleMuteCommand(Player player) {
-        if (player.hasPermission(BROADCAST_MUTE_PERMISSION)) {
-            player.sendMessage("You already have the broadcast mute permission.");
+        if (!player.hasPermission(BROADCAST_MUTE_PERMISSION)) {
+            player.sendMessage("You do not have the broadcast mute permission.");
             return true;
         }
 
-        PermissionAttachment permissionAttachment = playerAttachments.get(player.getUniqueId());
-        if (permissionAttachment != null) {
-            player.removeAttachment(permissionAttachment);
+        PermissionAttachment attachment = playerAttachments.get(player.getUniqueId());
+        if (attachment != null && attachment.getPermissions().containsKey(BROADCAST_MUTE_PERMISSION)) {
+            player.sendMessage("You are already muted from broadcast.");
+            return true;
         }
 
-        permissionAttachment = player.addAttachment(plugin);
-        Permission broadcastMutePermission = Bukkit.getPluginManager().getPermission(BROADCAST_MUTE_PERMISSION);
-        if (broadcastMutePermission != null) {
-            permissionAttachment.setPermission(broadcastMutePermission, true);
-            player.recalculatePermissions();
-            playerAttachments.put(player.getUniqueId(), permissionAttachment);
+        attachment = player.addAttachment(plugin);
+        attachment.setPermission(BROADCAST_MUTE_PERMISSION, true);
+        player.recalculatePermissions();
+        playerAttachments.put(player.getUniqueId(), attachment);
 
-            player.sendMessage("You have been granted the broadcast mute permission.");
-        } else {
-            player.sendMessage("Failed to grant the broadcast mute permission.");
-        }
+        player.sendMessage("You have been muted from broadcast.");
 
         return true;
     }
@@ -84,19 +81,19 @@ public class BroadcastCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        PermissionAttachment permissionAttachment = playerAttachments.get(player.getUniqueId());
-        if (permissionAttachment != null) {
-            player.removeAttachment(permissionAttachment);
-            player.recalculatePermissions();
-            playerAttachments.remove(player.getUniqueId());
-
-            player.sendMessage("You have been unmuted from broadcast.");
-
-            return true;
-        } else {
+        PermissionAttachment attachment = playerAttachments.get(player.getUniqueId());
+        if (attachment == null || !attachment.getPermissions().containsKey(BROADCAST_MUTE_PERMISSION)) {
             player.sendMessage("You are not currently muted from broadcast.");
             return true;
         }
+
+        attachment.remove();
+        player.recalculatePermissions();
+        playerAttachments.remove(player.getUniqueId());
+
+        player.sendMessage("You have been unmuted from broadcast.");
+
+        return true;
     }
 
     @Override
