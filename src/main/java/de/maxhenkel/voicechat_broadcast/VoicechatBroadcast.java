@@ -1,8 +1,11 @@
 package de.maxhenkel.voicechat_broadcast;
 
 import de.maxhenkel.voicechat.api.BukkitVoicechatService;
+import de.maxhenkel.voicechat_broadcast.command.BroadcastCommand;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.annotation.Nullable;
@@ -25,6 +28,10 @@ public final class VoicechatBroadcast extends JavaPlugin {
         } else {
             LOGGER.info("Failed to register voice chat broadcast plugin");
         }
+
+        // Register the BroadcastCommand
+        registerCommand("broadcast", new BroadcastCommand(this));
+
     }
 
     @Override
@@ -32,6 +39,13 @@ public final class VoicechatBroadcast extends JavaPlugin {
         if (voicechatPlugin != null) {
             getServer().getServicesManager().unregister(voicechatPlugin);
             LOGGER.info("Successfully unregistered voice chat broadcast plugin");
+        }
+    }
+
+    private void registerCommand(String commandName, CommandExecutor executor) {
+        getCommand(commandName).setExecutor(executor);
+        if (executor instanceof TabCompleter) {
+            getCommand(commandName).setTabCompleter((TabCompleter) executor);
         }
     }
 }

@@ -13,9 +13,8 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
     /**
      * Only OPs have the broadcast permission by default
      */
-    public static Permission BROADCAST_PERMISSION = new Permission("voicechat_broadcast.broadcast", PermissionDefault.OP);
-
-
+    public static Permission BROADCAST_PERMISSION = new Permission("voicechat_broadcast.broadcast", "voicechat_broadcast.mute", PermissionDefault.OP);
+    public static Permission BROADCAST_MUTE = new Permission("voicechat_broadcast.mute");
     /**
      * @return the unique ID for this voice chat plugin
      */
@@ -24,8 +23,6 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
         return VoicechatBroadcast.PLUGIN_ID;
     }
 
-
-
     /**
      * Called when the voice chat initializes the plugin.
      *
@@ -33,6 +30,7 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
      */
     @Override
     public void initialize(VoicechatApi api) {
+
     }
 
     /**
@@ -73,8 +71,8 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
             return;
         }
 
-        // Only allow broadcasting if the group name is "broadcast" and has a password
-        if (!group.getName().strip().equalsIgnoreCase("broadcast") || !group.hasPassword()) {
+        // Only broadcast the voice when the group name is "broadcast"
+        if (!group.getName().strip().equalsIgnoreCase("broadcast")) {
             return;
         }
 
@@ -89,7 +87,13 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
             if (onlinePlayer.getUniqueId().equals(player.getUniqueId())) {
                 continue;
             }
-            VoicechatConnection connection = api.getConnection(onlinePlayer.getUniqueId());
+
+            // Check if the online player also has the broadcast permission
+            if (onlinePlayer.hasPermission(BROADCAST_MUTE)) {
+                continue;
+            }
+
+            VoicechatConnection connection = api.getConnectionOf(onlinePlayer.getUniqueId());
             // Check if the player is actually connected to the voice chat
             if (connection == null) {
                 continue;

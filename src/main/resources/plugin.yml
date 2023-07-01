@@ -3,14 +3,16 @@ version: 1.0.0
 main: de.maxhenkel.voicechat_broadcast.VoicechatBroadcast
 api-version: 1.17
 prefix: voicechat_broadcast
-authors: [ "Max Henkel" ]
-description: A simple broadcast plugin for Simple Voice Chat
+authors: [ "ShinkaiPH" ]
+description: A Fork of the Simple Voice Chat Broadcast Plugin by Max Henkel
 website: https://modrepo.de
 commands:
-  mutebroadcast:
-    description: Mute or unmute the voice chat broadcast
-    usage: /mutebroadcast
+  broadcast:
+    description: Manage Broadcasts
+    usage: Invalid command syntax
 permissions:
   voicechat_broadcast.broadcast:
     description: Allows to broadcast your voice
+  voicechat_broadcast.mute:
+    description: Allows to mute players
 depend: [ voicechat ]
