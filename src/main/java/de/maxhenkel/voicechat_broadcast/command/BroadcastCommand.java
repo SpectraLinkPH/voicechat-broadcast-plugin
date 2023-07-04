@@ -6,7 +6,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
-import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.plugin.Plugin;
 
@@ -52,46 +51,49 @@ public class BroadcastCommand implements CommandExecutor, TabCompleter {
         }
     }
 
-
     private boolean handleMuteCommand(Player player) {
-        if (!player.hasPermission(BROADCAST_MUTE_PERMISSION)) {
-            player.sendMessage("You do not have the broadcast mute permission.");
-            return true;
-        }
 
-        PermissionAttachment attachment = playerAttachments.get(player.getUniqueId());
-        if (attachment != null && attachment.getPermissions().containsKey(BROADCAST_MUTE_PERMISSION)) {
+        // Check if the player already has the permission
+        if (player.hasPermission("voicechat_broadcast.mute")) {
             player.sendMessage("You are already muted from broadcast.");
             return true;
         }
 
-        attachment = player.addAttachment(plugin);
-        attachment.setPermission(BROADCAST_MUTE_PERMISSION, true);
-        player.recalculatePermissions();
-        playerAttachments.put(player.getUniqueId(), attachment);
+        // Execute the command to set the permission for the player
+        String command = "lp user " + player.getName() + " permission set voicechat_broadcast.mute true";
+        CommandSender console = Bukkit.getServer().getConsoleSender();
+        Bukkit.dispatchCommand(console, command);
 
-        player.sendMessage("You have been muted from broadcast.");
+        // Refresh the player's permissions
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            player.recalculatePermissions();
+            player.sendMessage("You have been muted from broadcast.");
+        }, 20); // Delay the execution for 1 second (20 ticks)
 
         return true;
     }
 
     private boolean handleUnmuteCommand(Player player) {
-        if (!player.hasPermission(BROADCAST_MUTE_PERMISSION)) {
-            player.sendMessage("You do not have the broadcast mute permission.");
-            return true;
-        }
 
-        PermissionAttachment attachment = playerAttachments.get(player.getUniqueId());
-        if (attachment == null || !attachment.getPermissions().containsKey(BROADCAST_MUTE_PERMISSION)) {
+        // Check if the player is currently muted
+        if (!player.hasPermission("voicechat_broadcast.mute")) {
             player.sendMessage("You are not currently muted from broadcast.");
             return true;
         }
 
-        attachment.remove();
-        player.recalculatePermissions();
-        playerAttachments.remove(player.getUniqueId());
+        // Execute the command to remove the permission for the player
+        String command = "lp user " + player.getName() + " permission unset voicechat_broadcast.mute";
+        CommandSender console = Bukkit.getServer().getConsoleSender();
+        Bukkit.dispatchCommand(console, command);
 
-        player.sendMessage("You have been unmuted from broadcast.");
+        // Refresh the player's permissions
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            player.recalculatePermissions();
+            player.sendMessage("You have been unmuted from broadcast.");
+        }, 20); // Delay the execution for 1 second (20 ticks)
+
+        // Remove the player's attachment
+        playerAttachments.remove(player.getUniqueId());
 
         return true;
     }
@@ -101,15 +103,7 @@ public class BroadcastCommand implements CommandExecutor, TabCompleter {
         return null; // Implement tab completion logic here if needed
     }
 
-    public PermissionAttachment getPlayerPermissionAttachment(Player player) {
-        return playerAttachments.get(player.getUniqueId());
-    }
-
-    public void addPlayerPermissionAttachment(Player player, PermissionAttachment attachment) {
-        playerAttachments.put(player.getUniqueId(), attachment);
-    }
-
-    public void removePlayerPermissionAttachment(Player player) {
-        playerAttachments.remove(player.getUniqueId());
+    public PermissionAttachment getPlayerPermissionAttachment(UUID playerId) {
+        return playerAttachments.get(playerId);
     }
 }
