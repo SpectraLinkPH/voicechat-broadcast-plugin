@@ -7,7 +7,7 @@ authors: [ "ShinkaiPH" ]
 description: A Fork of the Simple Voice Chat Broadcast Plugin by Max Henkel
 website: https://modrepo.de
 commands:
-  broadcast:
+  podcast:
     description: Manage Broadcasts
     usage: Invalid command syntax
 permissions:
