@@ -30,7 +30,7 @@ public final class VoicechatBroadcast extends JavaPlugin {
         }
 
         // Register the BroadcastCommand
-        registerCommand("broadcast", new BroadcastCommand(this));
+        registerCommand("podcast", new BroadcastCommand(this));
 
     }
 
