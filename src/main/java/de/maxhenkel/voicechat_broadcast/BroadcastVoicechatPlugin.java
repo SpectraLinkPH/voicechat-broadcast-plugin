@@ -72,7 +72,7 @@ public class BroadcastVoicechatPlugin implements VoicechatPlugin {
         }
 
         // Only broadcast the voice when the group name is "broadcast"
-        if (!group.getName().strip().equalsIgnoreCase("broadcast")) {
+        if (!group.getName().strip().equalsIgnoreCase("podcast")) {
             return;
         }
 
