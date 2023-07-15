@@ -36,7 +36,7 @@ public class BroadcastCommand implements CommandExecutor, TabCompleter {
         Player player = (Player) sender;
 
         if (args.length == 0) {
-            player.sendMessage("Usage: /broadcast [mute|unmute]");
+            player.sendMessage("Usage: /podcast [mute|unmute]");
             return true;
         }
 
@@ -46,7 +46,7 @@ public class BroadcastCommand implements CommandExecutor, TabCompleter {
         } else if (subCommand.equals("unmute")) {
             return handleUnmuteCommand(player);
         } else {
-            player.sendMessage("Invalid sub-command. Usage: /broadcast [mute|unmute]");
+            player.sendMessage("Invalid sub-command. Usage: /podcast [mute|unmute]");
             return true;
         }
     }
